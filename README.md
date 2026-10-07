@@ -36,7 +36,7 @@ Following a review of the business rules, constraints and assumptions, these wer
 -   A missing account id is treated like an invalid one. Only ids greater than zero are valid, and a missing id is not greater than zero.
 -   Invalid requests never reach the PaymentService or the SeatReservationService. Nothing should be charged or reserved for a request that will be refused.
 -   Payment is taken before seats are reserved. The task lists payment first, and both services are assumed never to fail.
--   Exceptions from the PaymentService or SeatReservationService are not caught. The spec says to assume both have no defects, so there is nothing sensible to recover from.
+-   There is no error handling around the PaymentService or SeatReservationService. The spec says both services have no defects.
 -   BookingConfirmation is extended with the seat count and total cost, and its original one argument constructor is kept. The OpenAPI file already lists both fields as required in the response, and keeping the old constructor means nothing that used it breaks.
 -   The JSON request uses the field names from the domain records (accountId, ticketRequests, type, ticketCount). The domain package cannot be changed, so the OpenAPI file was updated to match the code instead.
 -   Rejected purchases and malformed input, such as an unknown ticket type or a missing body, all return HTTP 400 with the same problem detail body. Callers then have one error format to deal with.
