@@ -1,10 +1,12 @@
 package uk.gov.dwp.engineering.recruitment;
 
+import java.math.BigDecimal;
 import org.springframework.stereotype.Service;
 import uk.gov.dwp.engineering.recruitment.domain.BookingConfirmation;
 import uk.gov.dwp.engineering.recruitment.domain.TicketRequest;
 import uk.gov.dwp.engineering.recruitment.exception.InvalidBookingException;
 import uk.gov.dwp.engineering.recruitment.purchase.PurchaseValidator;
+import uk.gov.dwp.engineering.recruitment.purchase.TicketCounts;
 import uk.gov.dwp.engineering.recruitment.purchase.TicketPriceCalculator;
 import uk.gov.dwp.engineering.recruitment.thirdparty.PaymentService;
 import uk.gov.dwp.engineering.recruitment.thirdparty.SeatReservationService;
@@ -35,6 +37,13 @@ public class CinemaTicketsServiceImpl implements CinemaTicketsService {
       final TicketRequest... ticketRequests)
       throws InvalidBookingException {
 
-    throw new UnsupportedOperationException("Not implemented yet");
+    final TicketCounts counts = purchaseValidator.validate(accountId, ticketRequests);
+    final BigDecimal totalCost = ticketPriceCalculator.totalPrice(counts);
+    final long seatCount = counts.seatCount();
+
+    paymentService.debitAccount(accountId, totalCost);
+    seatReservationService.reserveSeats(accountId, seatCount);
+
+    return new BookingConfirmation(accountId, seatCount, totalCost);
   }
 }
