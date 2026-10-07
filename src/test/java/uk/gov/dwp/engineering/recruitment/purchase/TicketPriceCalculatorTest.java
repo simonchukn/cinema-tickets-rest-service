@@ -17,9 +17,9 @@ class TicketPriceCalculatorTest {
       "0, 0, 1, 0.00",
       "2, 1, 1, 69.48"
   })
-  void calculatesTotalPrice(int adults, int children, int infants, String expected) {
+  void calculatesTotalCost(int adults, int children, int infants, String expected) {
     TicketCounts counts = new TicketCounts(adults, children, infants);
 
-    assertEquals(new BigDecimal(expected), calculator.totalPrice(counts));
+    assertEquals(new BigDecimal(expected), calculator.totalCost(counts));
   }
 }

@@ -57,7 +57,8 @@ public class PurchaseValidator {
 
       // AC7: no more than 25 tickets, checked before adding so the total never overflows
       if (count > MAX_TICKETS - (adults + children + infants)) {
-        throw new InvalidBookingException("No more than " + MAX_TICKETS + " tickets can be bought at once");
+        throw new InvalidBookingException(
+            "No more than " + MAX_TICKETS + " tickets can be bought at once");
       }
 
       // Same ticket type on several lines is added together

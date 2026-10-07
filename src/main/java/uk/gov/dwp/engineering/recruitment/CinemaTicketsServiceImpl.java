@@ -22,10 +22,10 @@ public class CinemaTicketsServiceImpl implements CinemaTicketsService {
 
   private final TicketPriceCalculator ticketPriceCalculator;
 
-  public CinemaTicketsServiceImpl(PaymentService paymentService,
-      SeatReservationService seatReservationService,
-      PurchaseValidator purchaseValidator,
-      TicketPriceCalculator ticketPriceCalculator) {
+  public CinemaTicketsServiceImpl(final PaymentService paymentService,
+      final SeatReservationService seatReservationService,
+      final PurchaseValidator purchaseValidator,
+      final TicketPriceCalculator ticketPriceCalculator) {
     this.paymentService = paymentService;
     this.seatReservationService = seatReservationService;
     this.purchaseValidator = purchaseValidator;
@@ -38,7 +38,7 @@ public class CinemaTicketsServiceImpl implements CinemaTicketsService {
       throws InvalidBookingException {
 
     final TicketCounts counts = purchaseValidator.validate(accountId, ticketRequests);
-    final BigDecimal totalCost = ticketPriceCalculator.totalPrice(counts);
+    final BigDecimal totalCost = ticketPriceCalculator.totalCost(counts);
     final long seatCount = counts.seatCount();
 
     paymentService.debitAccount(accountId, totalCost);

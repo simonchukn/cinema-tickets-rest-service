@@ -10,7 +10,7 @@ public class TicketPriceCalculator {
   private static final BigDecimal CHILD_PRICE = new BigDecimal("17.50");
   private static final BigDecimal INFANT_PRICE = new BigDecimal("0.00");
 
-  public BigDecimal totalPrice(final TicketCounts counts) {
+  public BigDecimal totalCost(final TicketCounts counts) {
     return cost(ADULT_PRICE, counts.adults())
         .add(cost(CHILD_PRICE, counts.children()))
         .add(cost(INFANT_PRICE, counts.infants()));
