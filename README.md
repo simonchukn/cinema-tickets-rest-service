@@ -32,7 +32,7 @@ Following a review of the business rules, constraints and assumptions, these wer
 -   A ticket line with a quantity of zero is allowed and adds nothing. It is harmless, so ADULT 2, CHILD 0, INFANT 0 is a valid request.
 -   Negative quantities are rejected. They would reduce the price and the seat count, which could never be correct.
 -   An empty request is rejected. It falls under the rule that at least one adult ticket is needed, so it needs no special handling.
--   If the same ticket type appears more than once in a request, the quantities are added together before any rule is checked. Otherwise a buyer could get round the limits by splitting a line in two.
+-   If the same ticket type appears more than once in a request, the quantities are added together and the rules apply to the combined total. Otherwise a buyer could get round the limits by splitting a line in two.
 -   A missing account id is treated like an invalid one. Only ids greater than zero are valid, and a missing id is not greater than zero.
 -   Invalid requests never reach the PaymentService or the SeatReservationService. Nothing should be charged or reserved for a request that will be refused.
 -   Payment is taken before seats are reserved. The task lists payment first, and both services are assumed never to fail.
@@ -44,7 +44,7 @@ Following a review of the business rules, constraints and assumptions, these wer
 ## Design Intent
 
 -   CinemaTicketsServiceImpl stays thin. It validates the request, works out the price and seat count, asks for payment and then reserves the seats.
--   Validation lives in its own PurchaseValidator, and pricing and seat counting live in a TicketPriceCalculator. Each can be read and tested on its own.
+-   Validation lives in PurchaseValidator, which also adds up the tickets into a small TicketCounts record. Pricing lives in TicketPriceCalculator, and the seat count is a method on TicketCounts. Each can be read and tested on its own.
 -   All dependencies are passed in through constructors.
 -   Money is held as BigDecimal, because that is what the PaymentService takes, and it avoids rounding errors.
 -   Rejections throw the existing InvalidBookingException with a message saying which rule failed. The CinemaTicketsService interface already declares it, so no new exception type is needed.
@@ -55,9 +55,70 @@ Following a review of the business rules, constraints and assumptions, these wer
 -   The service is tested with Mockito mocks of both third party services. An ArgumentCaptor checks the exact account id, amount and seat count that were sent.
 -   Prices, seat counts and the validation boundaries are covered by parameterised tests, for example 24, 25 and 26 tickets, and infants equal to and one more than adults.
 -   Every rejection path checks that neither the PaymentService nor the SeatReservationService was called, using verifyNoInteractions.
--   The controller is tested with MockMvc for the happy path, one rejection for each validation rule, and malformed input.
+-   The controller is tested with MockMvc for the happy path, one rejection for each validation rule, and malformed input. It uses the standalone setup with the real service, validator, calculator and error handler, so only the two third party services are mocked.
 -   Test names refer to the acceptance criteria they cover.
 
 ## Commit History Note
 
 The test commits fail on purpose. Each one adds tests and just enough stub code to compile, and the next feature commit makes them pass.
+
+The one exception is the controller tests. The happy path and the malformed input tests passed as soon as they were written, because the controller already existed and Spring already returns a 400 for JSON it cannot read. Only the rejection tests failed until the error handler was changed.
+
+## Running the Project
+
+JDK 21 or later. Project includes Maven wrapper, hence Maven does not need to be installed.
+
+Run the tests: `./mvnw test` or use `mvnw.cmd test` on Windows instead.
+
+
+Start the service on port 8080:
+
+```shell
+./mvnw spring-boot:run
+```
+
+The payment and seat reservation services are stubs that always succeed, so the service can be tried locally without anything else running.
+
+## Example Requests
+
+A valid booking for 2 adults, 1 child and 1 infant:
+
+```shell
+curl -i -X POST localhost:8080/cinema/bookings \
+  -H "Content-Type: application/json" \
+  -d '{"accountId":1,"ticketRequests":[{"type":"ADULT","ticketCount":2},{"type":"CHILD","ticketCount":1},{"type":"INFANT","ticketCount":1}]}'
+```
+
+This returns 201:
+
+```json
+{ "accountId": 1, "seatCount": 3, "totalCost": 69.48 }
+```
+
+A rejected booking, with more infants than adults:
+
+```shell
+curl -i -X POST localhost:8080/cinema/bookings \
+  -H "Content-Type: application/json" \
+  -d '{"accountId":1,"ticketRequests":[{"type":"ADULT","ticketCount":1},{"type":"INFANT","ticketCount":2}]}'
+```
+
+This returns 400:
+
+```json
+{
+  "title": "Bad Request",
+  "status": 400,
+  "detail": "Each infant needs an adult to sit with",
+  "instance": "/cinema/bookings"
+}
+```
+
+## Project Structure
+
+-   CinemaTicketsController receives the booking and returns the confirmation.
+-   CinemaTicketsServiceImpl validates, prices, pays and reserves, in that order.
+-   purchase/PurchaseValidator checks every rule and returns the ticket counts.
+-   purchase/TicketCounts holds the adult, child and infant counts and works out the seats.
+-   purchase/TicketPriceCalculator works out the total cost.
+-   exception/RestExceptionHandler turns rejected bookings into a 400 response.
