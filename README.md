@@ -1,16 +1,10 @@
 # Cinema Tickets Code
 
-## Objective
-
-To assess your ability to build a simple API.
-
-The scenario and requirements will be provided separately.
-
 ## Requirements Analysis
 
 Following a review of the business rules, constraints and assumptions, these were turned into a list of acceptance criteria, each of which can be checked by a test. Some rules can be read more than one way, for example whether infants count towards the 25 ticket limit. For each of these, a decision was made and the reasoning recorded, so the behaviour is deliberate rather than accidental. The code was built test first, in small commits that each trace back to one or more of the criteria below.
 
-## Acceptance Criteria
+## Acceptance Criteria (AC)
 
 1.  AC1: The total price is the sum of each ticket type's count times its price. ADULT costs 25.99 GBP, CHILD costs 17.50 GBP and INFANT is free.
 2.  AC2: The number of seats reserved is the number of ADULT tickets plus the number of CHILD tickets. Infants never get a seat.
@@ -43,7 +37,7 @@ Following a review of the business rules, constraints and assumptions, these wer
 
 ## Design Intent
 
--   CinemaTicketsServiceImpl stays thin. It validates the request, works out the price and seat count, asks for payment and then reserves the seats.
+-   CinemaTicketsServiceImpl validates the request, works out the price and seat count, asks for payment and then reserves the seats.
 -   Validation lives in PurchaseValidator, which also adds up the tickets into a small TicketCounts record. Pricing lives in TicketPriceCalculator, and the seat count is a method on TicketCounts. Each can be read and tested on its own.
 -   All dependencies are passed in through constructors.
 -   Money is held as BigDecimal, because that is what the PaymentService takes, and it avoids rounding errors.
