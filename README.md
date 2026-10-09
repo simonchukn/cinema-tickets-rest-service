@@ -44,6 +44,12 @@ Following a review of the business rules, constraints and assumptions, these wer
 -   Rejections throw the existing InvalidBookingException with a message saying which rule failed. The CinemaTicketsService interface already declares it, so no new exception type is needed.
 -   The existing RestExceptionHandler, a ControllerAdvice, maps InvalidBookingException to a 400 problem detail response. The controller only maps the request in and the response out.
 
+## OpenAPI Specification
+
+The API is described in `src/main/resources/cinema-tickets.yaml`. The only change is to the request fields, so they match the domain records: `tickets` is now `ticketRequests`, and `count` is now `ticketCount` (int32, to match the record's `int`).
+
+The spec also backs up some of the rules: `accountId` starts at 1 (AC3), `ticketCount` at 0 (AC4), `seatCount` runs from 1 to 25 (AC5, AC7), and only 201 and 400 responses are listed (AC12).
+
 ## Test Strategy
 
 -   The service is tested with Mockito mocks of both third party services. An ArgumentCaptor checks the exact account id, amount and seat count that were sent.
@@ -64,6 +70,7 @@ JDK 21 or later. Project includes Maven wrapper, hence Maven does not need to be
 
 Run the tests: `./mvnw test` or use `mvnw.cmd test` on Windows instead.
 
+A GitHub Actions workflow (`.github/workflows/ci.yml`) runs `./mvnw verify` on Java 21 for every push and pull request to main. 
 
 Start the service on port 8080:
 
