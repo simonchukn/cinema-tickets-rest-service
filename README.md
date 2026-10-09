@@ -62,8 +62,6 @@ The spec also backs up some of the rules: `accountId` starts at 1 (AC3), `ticket
 
 The test commits fail on purpose. Each one adds tests and just enough stub code to compile, and the next feature commit makes them pass.
 
-The one exception is the controller tests. The happy path and the malformed input tests passed as soon as they were written, because the controller already existed and Spring already returns a 400 for JSON it cannot read. Only the rejection tests failed until the error handler was changed.
-
 ## Running the Project
 
 JDK 21 or later. Project includes Maven wrapper, hence Maven does not need to be installed.
